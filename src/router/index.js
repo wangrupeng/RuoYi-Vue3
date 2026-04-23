@@ -89,6 +89,27 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/robot',
+    component: Layout,
+    redirect: 'noredirect',
+    name: 'Robot',
+    meta: { title: '机器人', icon: 'tree' },
+    children: [
+      {
+        path: 'cylinder',
+        component: () => import('@/views/robot/cylinder'),
+        name: 'CylinderModel',
+        meta: { title: '柱体模型', icon: 'cylinder' }
+      },
+      {
+        path: 'wall',
+        component: () => import('@/views/robot/wall'),
+        name: 'WallModel',
+        meta: { title: '墙面模型', icon: 'wall' }
+      }
+    ]
   }
 ]
 

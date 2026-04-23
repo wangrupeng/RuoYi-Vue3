@@ -7,7 +7,7 @@ export default {
   /**
    * 侧边栏主题 深色主题theme-dark，浅色主题theme-light
    */
-  sideTheme: 'theme-dark',
+  sideTheme: 'theme-light',
 
   /**
    * 是否系统布局配置
@@ -17,7 +17,7 @@ export default {
   /**
    * 菜单导航模式 1、纯左侧 2、混合（左侧+顶部） 3、纯顶部
    */
-  navType: 1,
+  navType: 2,
 
   /**
    * 是否显示 tagsView
@@ -27,17 +27,17 @@ export default {
   /**
    * 持久化标签页
    */
-  tagsViewPersist: false,
+  tagsViewPersist: true,
 
   /**
    * 显示页签图标
    */
-  tagsIcon: false,
+  tagsIcon: true,
 
   /**
    * 标签页样式：card 卡片（默认）、chrome 谷歌浏览器风格
    */
-  tagsViewStyle: 'card',
+  tagsViewStyle: 'chrome',
 
   /**
    * 是否固定头部
@@ -52,12 +52,12 @@ export default {
   /**
    * 是否显示动态标题
    */
-  dynamicTitle: false,
+  dynamicTitle: true,
 
   /**
    * 是否显示底部版权
    */
-  footerVisible: false,
+  footerVisible: true,
 
   /**
    * 底部版权文本内容
