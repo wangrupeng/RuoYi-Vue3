@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container wall-model">
+  <div class="app-container elevation-model">
     <el-row :gutter="20">
       <el-col :span="16">
         <el-card class="box-card">
@@ -57,6 +57,33 @@
                 @change="updateModel"
               />
             </el-form-item>
+            <el-form-item label="素线数量">
+              <el-input-number
+                v-model="paramsForm.meridianCount"
+                :min="4"
+                :max="25"
+                :step="1"
+                @change="updateModel"
+              />
+            </el-form-item>
+            <el-form-item label="显示实体">
+              <el-switch
+                v-model="paramsForm.showSolid"
+                active-text="实体"
+                inactive-text="线框"
+                @change="updateModel"
+              />
+            </el-form-item>
+            <el-form-item label="透明度">
+              <el-slider
+                v-model="paramsForm.opacity"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                show-input
+                @change="updateModel"
+              />
+            </el-form-item>
 
             <el-divider content-position="left">坐标系颜色</el-divider>
             <el-form-item label="X柱颜色">
@@ -111,7 +138,7 @@ let scene = null
 let camera = null
 let renderer = null
 let controls = null
-let wallMesh = null
+let elevationMesh = null
 let labelsGroup = null
 let lineMesh = null
 let animationId = null
@@ -121,13 +148,15 @@ const paramsForm = ref({
   bottomLength: 10,
   height: 5,
   color: '#46ff40',
+  meridianCount: 8,
   xColor: '#ff0000',
   yColor: '#00ff00',
   zColor: '#0000ff',
   latitude: 0,
   longitude: 0,
   altitude: 0,
-  wireframe: false
+  showSolid: true,
+  opacity: 0.3
 })
 
 function initThreeJS() {
@@ -182,51 +211,62 @@ function initThreeJS() {
   animate()
 }
 
-function createWall() {
+function createElevation() {
   // 移除旧模型
-  if (wallMesh) {
-    scene.remove(wallMesh)
-    wallMesh.geometry.dispose()
-    wallMesh.material.dispose()
+  if (elevationMesh) {
+    scene.remove(elevationMesh)
+    elevationMesh.geometry.dispose()
+    elevationMesh.material.dispose()
   }
-  
-
+  if (lineMesh) {
+    scene.remove(lineMesh)
+    lineMesh.geometry.dispose()
+    lineMesh.material.dispose()
+  }
+  const oldBorder = scene.getObjectByName('borderLines')
+  if (oldBorder) {
+    oldBorder.geometry.dispose()
+    oldBorder.material.dispose()
+    scene.remove(oldBorder)
+  }
 
   // 创建梯形墙面几何体
-  const bottomLength = paramsForm.value.bottomLength;
-  const topLength = paramsForm.value.topLength;
-  const height = paramsForm.value.height;
-  const shape = new THREE.Shape();
-  shape.moveTo(-bottomLength / 2, 0);
-  shape.lineTo(-topLength / 2, height);
-  shape.lineTo(topLength / 2, height);
-  shape.lineTo(bottomLength / 2, 0);
-  shape.lineTo(-bottomLength / 2, 0);
-  
+  const bottomLength = paramsForm.value.bottomLength
+  const topLength = paramsForm.value.topLength
+  const height = paramsForm.value.height
+  const altitude = paramsForm.value.altitude
+  const shape = new THREE.Shape()
+  shape.moveTo(-bottomLength / 2, 0)
+  shape.lineTo(-topLength / 2, height)
+  shape.lineTo(topLength / 2, height)
+  shape.lineTo(bottomLength / 2, 0)
+  shape.lineTo(-bottomLength / 2, 0)
+
   const extrudeSettings = {
     depth: 0,
     bevelEnabled: false
-  };
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  }
+  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
 
-  // 创建材质 - 不显示填充，只保留边框线和垂直线
+  // 创建材质
   const material = new THREE.MeshBasicMaterial({
-    color: new THREE.Color('#46ff40'),
-    wireframe: false,
+    color: new THREE.Color(paramsForm.value.color),
     transparent: true,
-    opacity: 0
+    opacity: paramsForm.value.opacity,
+    side: THREE.DoubleSide
   })
 
   // 创建网格
-  wallMesh = new THREE.Mesh(geometry, material)
-  wallMesh.castShadow = true
-  wallMesh.receiveShadow = true
-  wallMesh.position.y = paramsForm.value.altitude
-  scene.add(wallMesh)
-  
-  // 创建8条垂直线（与高度线平行，均匀分布在墙面上）
+  elevationMesh = new THREE.Mesh(geometry, material)
+  elevationMesh.castShadow = true
+  elevationMesh.receiveShadow = true
+  elevationMesh.position.y = altitude
+  elevationMesh.visible = paramsForm.value.showSolid
+  scene.add(elevationMesh)
+
+  // 创建垂直线（与高度线平行，均匀分布在墙面上）
   createVerticalLines()
-  
+
   // 绘制墙面边框线（4条边）
   createBorderLines()
 }
@@ -245,12 +285,13 @@ function createVerticalLines() {
   const topLength = paramsForm.value.topLength
   const bottomLength = paramsForm.value.bottomLength
   
-  // 创建8条垂直线的点
+  // 创建垂直线的点
   const points = []
+  const meridianCount = paramsForm.value.meridianCount || 8
   
-  // 在墙面上均匀分布8条线（包括左右边界）
-  for (let i = 0; i < 8; i++) {
-    const t = i / 7 // 0, 1/7, 2/7, ..., 1
+  // 在墙面上均匀分布素线（包括左右边界）
+  for (let i = 0; i < meridianCount; i++) {
+    const t = i / (meridianCount - 1) // 0, 1/(n-1), ..., 1
     
     // 在底部边上插值（从bottomLeft到bottomRight）
     const bottomX = -bottomLength / 2 + bottomLength * t
@@ -619,7 +660,7 @@ function createHeightIndicator() {
 
 function updateModel() {
   if (scene) {
-    createWall()
+    createElevation()
 
     // 清除所有标签
     if (labelsGroup) {
@@ -654,13 +695,15 @@ function resetParams() {
     bottomLength: 10,
     height: 5,
     color: '#46ff40',
+    meridianCount: 8,
     xColor: '#ff0000',
     yColor: '#00ff00',
     zColor: '#0000ff',
     latitude: 0,
     longitude: 0,
     altitude: 0,
-    wireframe: true
+    showSolid: true,
+    opacity: 0.3
   }
   updateModel()
 }
@@ -691,7 +734,7 @@ function screenshot() {
   renderer.render(scene, camera)
   const dataURL = renderer.domElement.toDataURL('image/png')
   const link = document.createElement('a')
-  link.download = 'wall-model.png'
+  link.download = 'elevation-model.png'
   link.href = dataURL
   link.click()
   proxy.$modal.msgSuccess('截图保存成功')
@@ -744,7 +787,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.wall-model {
+.elevation-model {
   .canvas-container {
     width: 100%;
     height: 600px;

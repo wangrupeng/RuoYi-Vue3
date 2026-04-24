@@ -21,7 +21,7 @@ VALUES (2001, '柱体模型', 2000, 1, 'cylinder', 'robot/cylinder', '', 'Cylind
 -- 3. 墙面模型菜单（二级菜单）
 -- ----------------------------
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2002, '墙面模型', 2000, 2, 'wall', 'robot/wall', '', 'WallModel', 1, 0, 'C', '0', '0', 'robot:wall:list', 'wall', 'admin', NOW(), '', NULL, '墙面模型页面');
+VALUES (2002, '墙面模型', 2000, 2, 'elevation', 'robot/elevation', '', 'ElevationModel', 1, 0, 'C', '0', '0', 'robot:elevation:list', 'elevation', 'admin', NOW(), '', NULL, '墙面模型页面');
 
 -- ----------------------------
 -- 4. 柱体模型按钮权限（新增）
@@ -36,10 +36,10 @@ VALUES (2004, '柱体模型导出', 2001, 2, '#', '', '', '', 1, 0, 'F', '0', '0
 -- 5. 墙面模型按钮权限（新增）
 -- ----------------------------
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2005, '墙面模型查询', 2002, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:wall:query', '#', 'admin', NOW(), '', NULL, '');
+VALUES (2005, '墙面模型查询', 2002, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:elevation:query', '#', 'admin', NOW(), '', NULL, '');
 
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2006, '墙面模型导出', 2002, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:wall:export', '#', 'admin', NOW(), '', NULL, '');
+VALUES (2006, '墙面模型导出', 2002, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:elevation:export', '#', 'admin', NOW(), '', NULL, '');
 
 -- ----------------------------
 -- 字段说明：
@@ -83,3 +83,29 @@ INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2003);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2004);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2005);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2006);
+
+-- ----------------------------
+-- 6. 塔型三维重建菜单（二级菜单）
+-- ----------------------------
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+VALUES (2007, '塔型三维重建', 2000, 3, 'threeModelBuilder', 'robot/threeModelBuilder', '', 'ThreeModelBuilder', 1, 0, 'C', '0', '0', 'robot:threeModelBuilder:list', 'tree', 'admin', NOW(), '', NULL, '塔型三维重建页面');
+
+-- ----------------------------
+-- 7. 塔型三维重建按钮权限
+-- ----------------------------
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+VALUES (2008, '塔型三维重建查询', 2007, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:threeModelBuilder:query', '#', 'admin', NOW(), '', NULL, '');
+
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+VALUES (2009, '塔型三维重建导出', 2007, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:threeModelBuilder:export', '#', 'admin', NOW(), '', NULL, '');
+
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+VALUES (2010, '塔型三维重建删除', 2007, 3, '#', '', '', '', 1, 0, 'F', '0', '0', 'robot:threeModelBuilder:remove', '#', 'admin', NOW(), '', NULL, '');
+
+-- ----------------------------
+-- 8. 将新菜单权限分配给超级管理员角色（角色ID=1）
+-- ----------------------------
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2007);
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2008);
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2009);
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 2010);

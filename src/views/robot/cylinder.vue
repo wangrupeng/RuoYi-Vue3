@@ -35,6 +35,33 @@
                 @change="updateModel"
               />
             </el-form-item>
+            <el-form-item label="素线数量">
+              <el-input-number
+                v-model="paramsForm.meridianCount"
+                :min="4"
+                :max="25"
+                :step="1"
+                @change="updateModel"
+              />
+            </el-form-item>
+            <el-form-item label="显示实体">
+              <el-switch
+                v-model="paramsForm.showSolid"
+                active-text="实体"
+                inactive-text="线框"
+                @change="updateModel"
+              />
+            </el-form-item>
+            <el-form-item label="透明度">
+              <el-slider
+                v-model="paramsForm.opacity"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                show-input
+                @change="updateModel"
+              />
+            </el-form-item>
 
             <el-divider content-position="left">坐标系颜色</el-divider>
             <el-form-item label="X柱颜色">
@@ -92,6 +119,7 @@ let renderer = null
 let controls = null
 let cylinderMesh = null
 let lineMesh = null
+let solidMesh = null
 let labelsGroup = null
 let animationId = null
 
@@ -100,12 +128,15 @@ const paramsForm = ref({
   topDiameter: 4,
   bottomDiameter: 4,
   color: '#46ff40',
+  meridianCount: 8,
   xColor: '#ff0000',
   yColor: '#00ff00',
   zColor: '#0000ff',
   latitude: 0,
   longitude: 0,
-  altitude: 0
+  altitude: 0,
+  showSolid: true,
+  opacity: 0.25
 })
 
 function initThreeJS() {
@@ -173,7 +204,6 @@ function createCylinder() {
     lineMesh.geometry.dispose()
     lineMesh.material.dispose()
   }
-
   const topRadius = paramsForm.value.topDiameter / 2
   const bottomRadius = paramsForm.value.bottomDiameter / 2
   const height = paramsForm.value.height
@@ -217,6 +247,25 @@ function createCylinder() {
   // 保存引用以便更新时移除
   cylinderMesh = { topCircle, bottomCircle }
 
+  // 创建实体圆柱体（半透明透视效果）
+  if (solidMesh) {
+    scene.remove(solidMesh)
+    solidMesh.geometry.dispose()
+    solidMesh.material.dispose()
+  }
+  const cylinderGeometry = new THREE.CylinderGeometry(topRadius, bottomRadius, height, 64, 1)
+  const cylinderMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(paramsForm.value.color),
+    transparent: true,
+    opacity: paramsForm.value.opacity,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  })
+  solidMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
+  solidMesh.position.set(0, altitude + height / 2, 0)
+  solidMesh.visible = paramsForm.value.showSolid
+  scene.add(solidMesh)
+
   // 创建方位标识和刻度
   createLabelsAndScales()
   
@@ -239,8 +288,12 @@ function createVerticalLines() {
   const height = paramsForm.value.height
   const altitude = paramsForm.value.altitude
 
-  // 8条线的起点和终点
-  const angles = [0, Math.PI / 4, Math.PI / 2, Math.PI * 3 / 4, Math.PI, Math.PI * 5 / 4, Math.PI * 3 / 2, Math.PI * 7 / 4]
+  // 动态生成素线角度
+  const meridianCount = paramsForm.value.meridianCount || 8
+  const angles = []
+  for (let i = 0; i < meridianCount; i++) {
+    angles.push((i / meridianCount) * Math.PI * 2)
+  }
   const points = []
 
   angles.forEach(angle => {
@@ -564,12 +617,15 @@ function resetParams() {
     topDiameter: 4,
     bottomDiameter: 4,
     color: '#46ff40',
+    meridianCount: 8,
     xColor: '#ff0000',
     yColor: '#00ff00',
     zColor: '#0000ff',
     latitude: 0,
     longitude: 0,
-    altitude: 0
+    altitude: 0,
+    showSolid: true,
+    opacity: 0.25
   }
   updateModel()
 }

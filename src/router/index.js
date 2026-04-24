@@ -104,10 +104,16 @@ export const constantRoutes = [
         meta: { title: '柱体模型', icon: 'cylinder' }
       },
       {
-        path: 'wall',
-        component: () => import('@/views/robot/wall'),
-        name: 'WallModel',
-        meta: { title: '墙面模型', icon: 'wall' }
+        path: 'elevation',
+        component: () => import('@/views/robot/elevation.vue'),
+        name: 'ElevationModel',
+        meta: { title: '墙面模型', icon: 'elevation' }
+      },
+      {
+        path: 'threeModelBuilder',
+        component: () => import('@/views/robot/threeModelBuilder'),
+        name: 'ThreeModelBuilder',
+        meta: { title: '塔型三维重建', icon: 'tree' }
       }
     ]
   }
