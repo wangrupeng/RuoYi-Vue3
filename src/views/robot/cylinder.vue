@@ -49,7 +49,7 @@
                 v-model="paramsForm.showSolid"
                 active-text="实体"
                 inactive-text="线框"
-                @change="updateModel"
+                @change="handleShowSolidChange"
               />
             </el-form-item>
             <el-form-item label="透明度">
@@ -59,6 +59,7 @@
                 :max="1"
                 :step="0.01"
                 show-input
+                :disabled="!paramsForm.showSolid"
                 @change="updateModel"
               />
             </el-form-item>
@@ -135,8 +136,8 @@ const paramsForm = ref({
   latitude: 0,
   longitude: 0,
   altitude: 0,
-  showSolid: true,
-  opacity: 0.25
+  showSolid: false,
+  opacity: 0
 })
 
 function initThreeJS() {
@@ -610,6 +611,16 @@ function createLabelsAndScales() {
   })
 }
 
+// 显示实体/线框切换时处理透明度
+function handleShowSolidChange(val) {
+  if (!val) {
+    paramsForm.value.opacity = 0
+  } else {
+    paramsForm.value.opacity = 0.25
+  }
+  updateModel()
+}
+
 // 重置模型参数到默认值
 function resetParams() {
   paramsForm.value = {
@@ -624,8 +635,8 @@ function resetParams() {
     latitude: 0,
     longitude: 0,
     altitude: 0,
-    showSolid: true,
-    opacity: 0.25
+    showSolid: false,
+    opacity: 0
   }
   updateModel()
 }

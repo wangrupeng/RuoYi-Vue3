@@ -5,7 +5,7 @@
         <el-card class="box-card">
           <template #header>
             <div class="card-header">
-              <span>墙面模型</span>
+              <span>立面模型</span>
             </div>
           </template>
           <div ref="canvasContainer" class="canvas-container"></div>
@@ -20,7 +20,7 @@
           </template>
           <el-form :model="paramsForm" label-width="100px">
             <el-divider content-position="left">模型参数</el-divider>
-            <el-form-item label="上边长度">
+            <el-form-item label="上边长度 (m)">
               <el-input-number
                 v-model="paramsForm.topLength"
                 :min="0.1"
@@ -30,7 +30,7 @@
                 @change="updateModel"
               />
             </el-form-item>
-            <el-form-item label="下边长度">
+            <el-form-item label="下边长度 (m)">
               <el-input-number
                 v-model="paramsForm.bottomLength"
                 :min="0.1"
@@ -40,7 +40,7 @@
                 @change="updateModel"
               />
             </el-form-item>
-            <el-form-item label="高度">
+            <el-form-item label="高度 (m)">
               <el-input-number
                 v-model="paramsForm.height"
                 :min="0.1"
@@ -71,7 +71,7 @@
                 v-model="paramsForm.showSolid"
                 active-text="实体"
                 inactive-text="线框"
-                @change="updateModel"
+                @change="handleShowSolidChange"
               />
             </el-form-item>
             <el-form-item label="透明度">
@@ -81,6 +81,7 @@
                 :max="1"
                 :step="0.01"
                 show-input
+                :disabled="!paramsForm.showSolid"
                 @change="updateModel"
               />
             </el-form-item>
@@ -155,8 +156,8 @@ const paramsForm = ref({
   latitude: 0,
   longitude: 0,
   altitude: 0,
-  showSolid: true,
-  opacity: 0.3
+  showSolid: false,
+  opacity: 0
 })
 
 function initThreeJS() {
@@ -201,7 +202,7 @@ function initThreeJS() {
   labelsGroup = new THREE.Group()
   scene.add(labelsGroup)
 
-  // 更新模型（创建墙面并生成坐标系）
+  // 更新模型（创建立面并生成坐标系）
   updateModel()
 
   // 监听窗口大小变化
@@ -230,7 +231,7 @@ function createElevation() {
     scene.remove(oldBorder)
   }
 
-  // 创建梯形墙面几何体
+  // 创建梯形立面几何体
   const bottomLength = paramsForm.value.bottomLength
   const topLength = paramsForm.value.topLength
   const height = paramsForm.value.height
@@ -264,14 +265,14 @@ function createElevation() {
   elevationMesh.visible = paramsForm.value.showSolid
   scene.add(elevationMesh)
 
-  // 创建垂直线（与高度线平行，均匀分布在墙面上）
+  // 创建垂直线（与高度线平行，均匀分布在立面上）
   createVerticalLines()
 
-  // 绘制墙面边框线（4条边）
+  // 绘制立面边框线（4条边）
   createBorderLines()
 }
 
-// 创建8条垂直线（与高度线平行，均匀分布在墙面上）
+// 创建8条垂直线（与高度线平行，均匀分布在立面上）
 function createVerticalLines() {
   // 移除旧线
   if (lineMesh) {
@@ -289,7 +290,7 @@ function createVerticalLines() {
   const points = []
   const meridianCount = paramsForm.value.meridianCount || 8
   
-  // 在墙面上均匀分布素线（包括左右边界）
+  // 在立面上均匀分布素线（包括左右边界）
   for (let i = 0; i < meridianCount; i++) {
     const t = i / (meridianCount - 1) // 0, 1/(n-1), ..., 1
     
@@ -316,7 +317,7 @@ function createVerticalLines() {
   scene.add(lineMesh)
 }
 
-// 绘制墙面边框线（4条边）
+// 绘制立面边框线（4条边）
 function createBorderLines() {
   // 移除旧边框
   const oldBorder = scene.getObjectByName('borderLines')
@@ -658,6 +659,15 @@ function createHeightIndicator() {
   labelsGroup.add(sprite)
 }
 
+function handleShowSolidChange(val) {
+  if (!val) {
+    paramsForm.value.opacity = 0
+  } else {
+    paramsForm.value.opacity = 0.3
+  }
+  updateModel()
+}
+
 function updateModel() {
   if (scene) {
     createElevation()
@@ -702,8 +712,8 @@ function resetParams() {
     latitude: 0,
     longitude: 0,
     altitude: 0,
-    showSolid: true,
-    opacity: 0.3
+    showSolid: false,
+    opacity: 0
   }
   updateModel()
 }
