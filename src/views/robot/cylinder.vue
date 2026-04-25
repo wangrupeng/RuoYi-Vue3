@@ -1,116 +1,97 @@
----------------- <template>
+ <template>
   <div class="app-container cylinder-model" :class="{ 'dark-theme': isDarkTheme }">
-    <el-row :gutter="20">
-      <el-col :span="16">
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <span>柱体模型</span>
-            </div>
-          </template>
-          <div ref="canvasContainer" class="canvas-container"></div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <span>参数设置</span>
-              <el-button size="small" @click="toggleTheme">{{ isDarkTheme ? '亮色' : '暗色' }}</el-button>
-            </div>
-          </template>
-          <el-form :model="paramsForm" label-width="100px">
-            <el-divider content-position="left">模型参数</el-divider>
-            <el-form-item label="高度 (m)">
-              <el-input-number v-model="paramsForm.height" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
-            </el-form-item>
-            <el-form-item label="上直径 (m)">
-              <el-input-number v-model="paramsForm.topDiameter" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
-            </el-form-item>
-            <el-form-item label="下直径 (m)">
-              <el-input-number v-model="paramsForm.bottomDiameter" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
-            </el-form-item>
-            <el-form-item label="颜色">
-              <el-color-picker
-                v-model="paramsForm.color"
-                @change="updateModel"
-              />
-            </el-form-item>
-            <el-form-item label="素线数量">
-              <el-input-number
-                v-model="paramsForm.meridianCount"
-                :min="4"
-                :max="25"
-                :step="1"
-                @change="updateModel"
-              />
-            </el-form-item>
-            <el-form-item label="显示实体">
-              <el-switch
-                v-model="paramsForm.showSolid"
-                active-text="实体"
-                inactive-text="线框"
-                @change="handleShowSolidChange"
-              />
-            </el-form-item>
-            <el-form-item label="透明度">
-              <el-slider
-                v-model="paramsForm.opacity"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                show-input
-                :disabled="!paramsForm.showSolid"
-                @change="updateModel"
-              />
-            </el-form-item>
+    <!-- 3D画布 -->
+    <canvas ref="canvasContainer" class="canvas-container"></canvas>
 
-            <el-divider content-position="left">坐标系颜色</el-divider>
-            <el-form-item label="X柱颜色">
-              <el-color-picker
-                v-model="paramsForm.xColor"
-                @change="updateModel"
-              />
-            </el-form-item>
-            <el-form-item label="Y柱颜色">
-              <el-color-picker
-                v-model="paramsForm.yColor"
-                @change="updateModel"
-              />
-            </el-form-item>
-            <el-form-item label="Z柱颜色">
-              <el-color-picker
-                v-model="paramsForm.zColor"
-                @change="updateModel"
-              />
-            </el-form-item>
+    <!-- 顶部中央坐标系位置 -->
+    <div class="float-panel panel-top">
+      <el-form :model="paramsForm" label-width="70px" size="small" class="coord-form">
+        <el-form-item label="中心经度">
+          <el-input-number v-model="paramsForm.longitude" :precision="6" :step="0.0001" @change="updateModel" />
+        </el-form-item>
+        <el-form-item label="中心纬度">
+          <el-input-number v-model="paramsForm.latitude" :precision="6" :step="0.0001" @change="updateModel" />
+        </el-form-item>
+        <el-form-item label="中心海拔">
+          <el-input-number v-model="paramsForm.altitude" @change="updateModel" />
+        </el-form-item>
+      </el-form>
+    </div>
 
-            <el-divider content-position="left">坐标系位置</el-divider>
-            
-            <el-form-item label="中心经度">
-              <el-input-number v-model="paramsForm.longitude" :precision="6" :step="0.0001" @change="updateModel" />
-            </el-form-item>
-            <el-form-item label="中心纬度">
-              <el-input-number v-model="paramsForm.latitude" :precision="6" :step="0.0001" @change="updateModel" />
-            </el-form-item>
-            <el-form-item label="中心海拔 (m)">
-              <el-input-number v-model="paramsForm.altitude" @change="updateModel" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="resetParams">重置参数</el-button>
-              <el-button type="success" @click="centerModel">居中模型</el-button>
-              <el-button type="info" @click="screenshot">截图保存</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 左上角颜色面板 -->
+    <div class="float-panel panel-tl">
+      <el-form :model="paramsForm" label-width="70px" size="small">
+        <el-form-item label="模型颜色">
+          <el-color-picker v-model="paramsForm.color" @change="updateModel" />
+        </el-form-item>
+        <el-form-item label="E-W颜色">
+          <el-color-picker v-model="paramsForm.xColor" @change="updateModel" />
+        </el-form-item>
+        <el-form-item label="U-D颜色">
+          <el-color-picker v-model="paramsForm.yColor" @change="updateModel" />
+        </el-form-item>
+        <el-form-item label="S-N颜色">
+          <el-color-picker v-model="paramsForm.zColor" @change="updateModel" />
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <!-- 右上角模型参数面板 -->
+    <div class="float-panel panel-tr">
+      <div class="panel-section">
+        <el-form :model="paramsForm" label-width="80px" size="small">
+          <el-form-item label="高度 (m)">
+            <el-input-number v-model="paramsForm.height" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
+          </el-form-item>
+          <el-form-item label="上直径 (m)">
+            <el-input-number v-model="paramsForm.topDiameter" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
+          </el-form-item>
+          <el-form-item label="下直径 (m)">
+            <el-input-number v-model="paramsForm.bottomDiameter" :min="0.1" :max="500" :step="0.01" :precision="2" @change="updateModel" />
+          </el-form-item>
+          <el-form-item label="素线数量">
+            <el-input-number v-model="paramsForm.meridianCount" :min="4" :max="25" :step="1" :disabled="paramsForm.showSolid" @change="updateModel" />
+          </el-form-item>
+          <el-form-item label="线框/实体">
+            <el-switch v-model="paramsForm.showSolid" active-text="实体" inactive-text="线框" @change="handleShowSolidChange" />
+          </el-form-item>
+          <el-form-item label="透明度">
+            <el-input-number v-model="paramsForm.opacity" :min="0" :max="1" :step="0.01" :precision="2" :disabled="!paramsForm.showSolid" />
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+
+    <!-- 右下角按钮 -->
+    <div class="float-panel panel-br">
+      <div class="btn-group">
+        <el-link type="primary" icon="Refresh" @click="resetParams">重置参数</el-link>
+        <el-link type="success" icon="Aim" @click="centerModel">居中模型</el-link>
+        <el-link type="info" icon="Camera" @click="screenshot">截图保存</el-link>
+      </div>
+    </div>
+
+    <!-- 左下角坐标轴说明 + 操作指南 -->
+    <div class="float-panel panel-bl">
+      <div class="axis-legend">
+        <div class="legend-item"><span class="color-line" :style="{background: paramsForm.xColor}"></span>E-W (东西向)</div>
+        <div class="legend-item"><span class="color-line" :style="{background: paramsForm.yColor}"></span>U-D (上下向)</div>
+        <div class="legend-item"><span class="color-line" :style="{background: paramsForm.zColor}"></span>S-N (南北向)</div>
+      </div>
+      <el-divider class="dark-divider" />
+      <div class="guide-list">
+        <div class="guide-item"><span class="guide-key">左键拖拽</span>旋转视角</div>
+        <div class="guide-item"><span class="guide-key">右键拖拽</span>平移视角</div>
+        <div class="guide-item"><span class="guide-key">滚轮</span>缩放</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { useDark } from '@vueuse/core'
 
 const { proxy } = getCurrentInstance()
 
@@ -125,14 +106,13 @@ let solidMesh = null
 let labelsGroup = null
 let animationId = null
 
-const isDarkTheme = ref(false)
+const isDarkTheme = useDark()
 
-function toggleTheme() {
-  isDarkTheme.value = !isDarkTheme.value
+watch(isDarkTheme, (val) => {
   if (scene) {
-    scene.background = new THREE.Color(isDarkTheme.value ? 0x1a1a2e : 0xf5f5f5)
+    scene.background = new THREE.Color(val ? 0x1a1a2e : 0xf5f5f5)
   }
-}
+})
 
 const paramsForm = ref({
   height: 5,
@@ -151,22 +131,29 @@ const paramsForm = ref({
 })
 
 function initThreeJS() {
+  // 防止重复初始化
+  if (scene) return
+  // 确保容器有尺寸
+  const width = canvasContainer.value.clientWidth
+  const height = canvasContainer.value.clientHeight
+  if (width === 0 || height === 0) {
+    setTimeout(initThreeJS, 100)
+    return
+  }
+
   // 创建场景
   scene = new THREE.Scene()
   scene.background = new THREE.Color(isDarkTheme.value ? 0x1a1a2e : 0xf5f5f5)
 
   // 创建相机
-  const width = canvasContainer.value.clientWidth
-  const height = canvasContainer.value.clientHeight
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 5000) // 增加远裁剪面以适应 500m 级模型
   camera.position.set(10, 8, 10)
   camera.lookAt(0, paramsForm.value.altitude + paramsForm.value.height / 2, 0)
 
-  // 创建渲染器
-  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+  // 创建渲染器（直接绑定到 Vue 管理的 canvas 元素）
+  renderer = new THREE.WebGLRenderer({ canvas: canvasContainer.value, antialias: true, preserveDrawingBuffer: true })
   renderer.setSize(width, height)
   renderer.setPixelRatio(window.devicePixelRatio)
-  canvasContainer.value.appendChild(renderer.domElement)
 
   // 添加轨道控制器
   controls = new OrbitControls(camera, renderer.domElement)
@@ -236,6 +223,7 @@ function createCylinder() {
     linewidth: 2
   })
   const topCircle = new THREE.Line(topCircleGeometry, topCircleMaterial)
+  topCircle.visible = !paramsForm.value.showSolid
   scene.add(topCircle)
 
   // 创建下面的圆圈
@@ -253,6 +241,7 @@ function createCylinder() {
     linewidth: 2
   })
   const bottomCircle = new THREE.Line(bottomCircleGeometry, bottomCircleMaterial)
+  bottomCircle.visible = !paramsForm.value.showSolid
   scene.add(bottomCircle)
 
   // 保存引用以便更新时移除
@@ -265,12 +254,11 @@ function createCylinder() {
     solidMesh.material.dispose()
   }
   const cylinderGeometry = new THREE.CylinderGeometry(topRadius, bottomRadius, height, 64, 1)
-  const cylinderMaterial = new THREE.MeshBasicMaterial({
+  const cylinderMaterial = new THREE.MeshLambertMaterial({
     color: new THREE.Color(paramsForm.value.color),
-    transparent: true,
+    transparent: paramsForm.value.opacity < 1,
     opacity: paramsForm.value.opacity,
-    side: THREE.DoubleSide,
-    depthWrite: false
+    side: THREE.DoubleSide
   })
   solidMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial)
   solidMesh.position.set(0, altitude + height / 2, 0)
@@ -327,6 +315,7 @@ function createVerticalLines() {
   })
 
   lineMesh = new THREE.LineSegments(lineGeometry, lineMaterial)
+  lineMesh.visible = !paramsForm.value.showSolid
   scene.add(lineMesh)
 }
 
@@ -334,6 +323,7 @@ function createVerticalLines() {
 function createHeightIndicator() {
   const height = paramsForm.value.height
   const altitude = paramsForm.value.altitude
+  const modelRefSize = Math.max(height, Math.max(paramsForm.value.topDiameter, paramsForm.value.bottomDiameter) / 2)
 
   // 垂直线移至中心位置 (0, 0) - 使用配置的Y柱颜色
   const offset = 0
@@ -382,25 +372,23 @@ function createHeightIndicator() {
     // 刻度数字 - 使用Y柱颜色
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
-    canvas.width = 128
-    canvas.height = 32
+    canvas.width = 512
+    canvas.height = 256
     context.fillStyle = paramsForm.value.yColor
-    context.font = '16px Arial'
-    context.textAlign = 'left'
+    context.font = '128px Arial'
+    context.textAlign = 'center'
     context.textBaseline = 'middle'
     // 根据步长决定显示精度
     const labelText = step < 1 ? y.toFixed(1) : `${Math.round(y)}`
-    context.fillText(labelText, 10, 16)
+    context.fillText(labelText, 256, 128)
 
     const texture = new THREE.CanvasTexture(canvas)
     const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true })
     const sprite = new THREE.Sprite(spriteMaterial)
     sprite.position.set(offset + 0.05, altitude + y, 0.02)
-    // 根据相机距离调整精灵大小，确保在各种缩放级别都可见
-    const distance = camera ? camera.position.distanceTo(sprite.position) : 10
-    const scaleValue = Math.max(0.5, distance * 0.05)  // 随距离缩放，但最小为0.5
-    sprite.scale.set(scaleValue, scaleValue * 0.4, 1)
-    sprite.renderOrder = 100
+    // 根据模型尺寸调整精灵大小，保持与模型的比例关系
+    const scaleValue = Math.max(0.3, modelRefSize * 0.08)
+    sprite.scale.set(scaleValue * 0.6, scaleValue * 0.3, 1)
     labelsGroup.add(sprite)
   }
 
@@ -420,47 +408,65 @@ function createHeightIndicator() {
     // 顶部刻度数字 - 使用Y柱颜色
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
-    canvas.width = 128
-    canvas.height = 32
+    canvas.width = 512
+    canvas.height = 256
     context.fillStyle = paramsForm.value.yColor
-    context.font = 'bold 16px Arial'
-    context.textAlign = 'left'
+    context.font = '128px Arial'
+    context.textAlign = 'center'
     context.textBaseline = 'middle'
-    context.fillText(height.toFixed(2), 10, 16)
+    context.fillText(height.toFixed(2), 256, 128)
 
     const texture = new THREE.CanvasTexture(canvas)
     const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true })
     const sprite = new THREE.Sprite(spriteMaterial)
     sprite.position.set(offset + 0.1, altitude + height, 0.05)
-    // 根据相机距离调整精灵大小，确保在各种缩放级别都可见
-    const distance = camera ? camera.position.distanceTo(sprite.position) : 10
-    const scaleValue = Math.max(0.5, distance * 0.05)  // 随距离缩放，但最小为0.5
-    sprite.scale.set(scaleValue * 1.2, scaleValue * 0.4, 1)
-    sprite.renderOrder = 100
+    // 根据模型尺寸调整精灵大小，保持与模型的比例关系
+    const scaleValue = Math.max(0.3, modelRefSize * 0.08)
+    sprite.scale.set(scaleValue * 0.6, scaleValue * 0.3, 1)
     labelsGroup.add(sprite)
   }
 
-  // 总高度标签 - 使用Y柱颜色
-  const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')
-  canvas.width = 128
-  canvas.height = 32
-  context.fillStyle = paramsForm.value.yColor
-  context.font = 'bold 16px Arial'
-  context.textAlign = 'center'
-  context.textBaseline = 'middle'
-  context.fillText(`H: ${height.toFixed(2)}`, 64, 16)
+  // U 标签（高度线上端）- 使用Y柱颜色
+  const uCanvas = document.createElement('canvas')
+  const uContext = uCanvas.getContext('2d')
+  uCanvas.width = 512
+  uCanvas.height = 256
+  uContext.fillStyle = paramsForm.value.yColor
+  uContext.font = 'bold 72px Arial'
+  uContext.textAlign = 'center'
+  uContext.fillText('U', 256, 100)
+  uContext.font = '64px Arial'
+  uContext.fillText(height.toFixed(2), 256, 200)
 
-  const texture = new THREE.CanvasTexture(canvas)
-  const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true })
-  const sprite = new THREE.Sprite(spriteMaterial)
-  sprite.position.set(offset, altitude + height + 0.2, 0)
-  // 根据相机距离调整精灵大小，确保在各种缩放级别都可见
-  const distance = camera ? camera.position.distanceTo(sprite.position) : 10
-  const scaleValue = Math.max(0.5, distance * 0.05)  // 随距离缩放，但最小为0.5
-  sprite.scale.set(scaleValue * 1.2, scaleValue * 0.3, 1)
-  sprite.renderOrder = 100
-  labelsGroup.add(sprite)
+  const uTexture = new THREE.CanvasTexture(uCanvas)
+  const uSpriteMaterial = new THREE.SpriteMaterial({ map: uTexture, depthTest: false, transparent: true })
+  const uSprite = new THREE.Sprite(uSpriteMaterial)
+  uSprite.position.set(offset, altitude + height + 0.15, 0.05)
+  const uScaleValue = Math.max(0.3, modelRefSize * 0.08)
+  uSprite.scale.set(uScaleValue, uScaleValue * 0.5, 1)
+  uSprite.renderOrder = 100
+  labelsGroup.add(uSprite)
+
+  // D 标签（高度线下端）- 使用Y柱颜色
+  const dCanvas = document.createElement('canvas')
+  const dContext = dCanvas.getContext('2d')
+  dCanvas.width = 512
+  dCanvas.height = 256
+  dContext.fillStyle = paramsForm.value.yColor
+  dContext.font = 'bold 72px Arial'
+  dContext.textAlign = 'center'
+  dContext.fillText('D', 256, 100)
+  dContext.font = '64px Arial'
+  dContext.fillText('0.00', 256, 200)
+
+  const dTexture = new THREE.CanvasTexture(dCanvas)
+  const dSpriteMaterial = new THREE.SpriteMaterial({ map: dTexture, depthTest: false, transparent: true })
+  const dSprite = new THREE.Sprite(dSpriteMaterial)
+  dSprite.position.set(offset, altitude - 0.15, 0.05)
+  const dScaleValue = Math.max(0.3, modelRefSize * 0.08)
+  dSprite.scale.set(dScaleValue, dScaleValue * 0.5, 1)
+  dSprite.renderOrder = 100
+  labelsGroup.add(dSprite)
 }
 
 // 创建坐标系标签和刻度，包括X轴、Z轴和网格
@@ -485,7 +491,8 @@ function createLabelsAndScales() {
 
   const altitude = paramsForm.value.altitude
   const maxRadius = Math.max(paramsForm.value.topDiameter, paramsForm.value.bottomDiameter) / 2
-  
+  const modelRefSize = Math.max(paramsForm.value.height, maxRadius * 2)
+
   // 动态确定刻度步长：根据最大半径动态调整
   let scaleSteps = 1
   if (maxRadius <= 0.5) {
@@ -555,24 +562,23 @@ function createLabelsAndScales() {
     // 轴末端方位和尺寸标签 (去掉 m，精确到两位小数)
     const endCanvas = document.createElement('canvas')
     const endContext = endCanvas.getContext('2d')
-    endCanvas.width = 128
-    endCanvas.height = 64
+    endCanvas.width = 512
+    endCanvas.height = 256
     // 使用对应轴的颜色
     const axisColor = axis.dx !== 0 ? paramsForm.value.xColor : paramsForm.value.zColor
     endContext.fillStyle = axisColor
-    endContext.font = 'bold 18px Arial' // 进一步减小字体到18px
+    endContext.font = 'bold 72px Arial' // 进一步减小字体到18px
     endContext.textAlign = 'center'
-    endContext.fillText(axis.label, 64, 25)
-    endContext.font = '16px Arial' // 进一步减小尺寸字体到16px
-    endContext.fillText(`${maxRadius.toFixed(2)}`, 64, 50)
+    endContext.fillText(axis.label, 256, 100)
+    endContext.font = '64px Arial' // 进一步减小尺寸字体到16px
+    endContext.fillText(`${maxRadius.toFixed(2)}`, 256, 200)
 
     const endTexture = new THREE.CanvasTexture(endCanvas)
     const endSpriteMaterial = new THREE.SpriteMaterial({ map: endTexture, depthTest: false, transparent: true })
     const endSprite = new THREE.Sprite(endSpriteMaterial)
     endSprite.position.set(axis.dx * (maxRadius + 0.15), altitude + 0.1, axis.dz * (maxRadius + 0.15))
-    // 根据相机距离调整精灵大小，确保在各种缩放级别都可见
-    const distance = camera ? camera.position.distanceTo(endSprite.position) : 10
-    const scaleValue = Math.max(0.3, distance * 0.03)  // 进一步减小缩放比例，最小为0.3
+    // 根据模型尺寸调整精灵大小，保持与模型的比例关系
+    const scaleValue = Math.max(0.3, modelRefSize * 0.08)
     endSprite.scale.set(scaleValue, scaleValue * 0.5, 1)
     endSprite.renderOrder = 100
     labelsGroup.add(endSprite)
@@ -599,26 +605,34 @@ function createLabelsAndScales() {
       // 数字标签 (去掉 m) - 使用对应轴的颜色
       const canvas = document.createElement('canvas')
       const context = canvas.getContext('2d')
-      canvas.width = 64
-      canvas.height = 32
+      canvas.width = 512
+      canvas.height = 256
       context.fillStyle = axis.dx !== 0 ? paramsForm.value.xColor : paramsForm.value.zColor
-      context.font = '16px Arial'
+      context.font = '128px Arial'
       context.textAlign = 'center'
       context.textBaseline = 'middle'
-      context.fillText(`${i}`, 32, 16)
+      context.fillText(`${i}`, 256, 128)
 
       const texture = new THREE.CanvasTexture(canvas)
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true })
       const sprite = new THREE.Sprite(spriteMaterial)
       // 数字位于刻度线末端（Y轴下方）
       sprite.position.set(x, altitude - 0.3, z)
-      // 根据相机距离调整精灵大小，确保在各种缩放级别都可见
-      const distance = camera ? camera.position.distanceTo(sprite.position) : 10
-      const scaleValue = Math.max(0.2, distance * 0.03)  // 进一步减小缩放比例，最小为0.2
+      // 根据模型尺寸调整精灵大小，保持与模型的比例关系
+      const scaleValue = Math.max(0.3, modelRefSize * 0.08)
       sprite.scale.set(scaleValue * 0.6, scaleValue * 0.3, 1)
       labelsGroup.add(sprite)
     }
   })
+}
+
+function updateMaterialOpacity() {
+  if (solidMesh && solidMesh.material) {
+    const opacity = paramsForm.value.opacity
+    solidMesh.material.opacity = opacity
+    solidMesh.material.transparent = opacity < 1
+    solidMesh.material.needsUpdate = true
+  }
 }
 
 // 显示实体/线框切换时处理透明度
@@ -764,84 +778,225 @@ function animate() {
 }
 
 // 组件挂载时初始化Three.js场景
+watch(() => paramsForm.value.opacity, () => {
+  if (scene) {
+    updateMaterialOpacity()
+  }
+})
+
 onMounted(() => {
   nextTick(() => {
     initThreeJS()
   })
 })
 
+// keep-alive 激活时恢复动画
+onActivated(() => {
+  if (scene && !animationId) {
+    animate()
+  }
+})
+
+// keep-alive 停用时暂停动画，节省性能
+onDeactivated(() => {
+  if (animationId) {
+    cancelAnimationFrame(animationId)
+    animationId = null
+  }
+})
+
 // 组件卸载前清理Three.js资源
 onBeforeUnmount(() => {
   if (animationId) {
     cancelAnimationFrame(animationId)
+    animationId = null
   }
   window.removeEventListener('resize', handleResize)
   if (renderer) {
     renderer.dispose()
-    canvasContainer.value?.removeChild(renderer.domElement)
+    renderer = null
   }
   if (controls) {
     controls.dispose()
+    controls = null
   }
+  scene = null
+  camera = null
 })
 </script>
 
 <style lang="scss" scoped>
 .cylinder-model {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 84px);
+  overflow: hidden;
+
   .canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 600px;
-    position: relative;
+    height: 100%;
+  }
+
+  /* 浮动面板通用样式 */
+  .float-panel {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.92);
     border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    overflow: hidden;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #333;
+    font-size: 13px;
+    backdrop-filter: blur(4px);
+    min-width: 220px;
+    max-width: 300px;
+
+    :deep(.el-form-item) {
+      margin-bottom: 12px;
+    }
+
+    :deep(.el-form-item__label) {
+      color: #606266;
+    }
   }
 
-  .card-header {
+  .panel-tl {
+    top: 16px;
+    left: 16px;
+    min-width: auto;
+    max-width: 135px;
+  }
+
+  .panel-tr {
+    top: 16px;
+    right: 16px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+
+  .panel-bl {
+    bottom: 16px;
+    left: 16px;
+    min-width: 160px;
+
+    :deep(.el-divider) {
+      margin: 6px 0;
+    }
+  }
+
+  .panel-br {
+    bottom: 16px;
+    right: 16px;
+    width: auto;
+    min-width: auto;
+  }
+
+  .panel-top {
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: auto;
+    max-width: none;
+
+    .coord-form {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+
+      :deep(.el-form-item) {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  /* 坐标轴图例 */
+  .axis-legend {
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+
+      .color-line {
+        display: inline-block;
+        width: 24px;
+        height: 3px;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  /* 操作指南 */
+  .guide-list {
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+
+      .guide-key {
+        display: inline-block;
+        background: #f0f2f5;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        padding: 2px 8px;
+        color: #606266;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .btn-group {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    font-size: 16px;
-  }
-
-  .el-form {
-    padding: 10px;
-  }
-
-  .el-form-item {
-    margin-bottom: 22px;
+    flex-direction: column;
+    gap: 8px;
   }
 
   /* 深色主题 */
   &.dark-theme {
     background: #0d1117;
 
-    :deep(.el-card) {
-      background: #161b22;
+    .float-panel {
+      background: rgba(22, 27, 34, 0.92);
       border-color: #30363d;
-    }
-
-    .card-header {
-      color: #58a6ff;
-    }
-
-    :deep(.el-form-item__label) {
       color: #c9d1d9;
+
+      .panel-title {
+        color: #58a6ff;
+        border-bottom-color: #30363d;
+      }
+
+      .section-title {
+        color: #c9d1d9;
+      }
+
+      :deep(.el-form-item__label) {
+        color: #c9d1d9;
+      }
+
+      :deep(.el-divider__text) {
+        background: rgba(22, 27, 34, 0.92);
+        color: #8b949e;
+      }
+
+      :deep(.el-input__wrapper) {
+        background: #0d1117;
+        box-shadow: 0 0 0 1px #30363d inset;
+      }
+
+      :deep(.el-input__inner) {
+        color: #c9d1d9;
+      }
     }
 
-    :deep(.el-divider__text) {
-      background: #161b22;
-      color: #8b949e;
-    }
-
-    :deep(.el-input__wrapper) {
-      background: #0d1117;
-      box-shadow: 0 0 0 1px #30363d inset;
-    }
-
-    :deep(.el-input__inner) {
-      color: #c9d1d9;
+    .guide-key {
+      background: rgba(48, 54, 61, 0.6);
+      border-color: rgba(88, 166, 255, 0.3);
     }
   }
 }

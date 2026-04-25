@@ -1,11 +1,11 @@
 <template>
   <section class="app-main">
     <router-view v-slot="{ Component, route }">
-      <transition name="fade-transform" mode="out-in">
-        <keep-alive :include="tagsViewStore.cachedViews">
+      <keep-alive :include="tagsViewStore.cachedViews">
+        <transition name="fade-transform" mode="out-in">
           <component v-if="!route.meta.link" :is="Component" :key="route.path"/>
-        </keep-alive>
-      </transition>
+        </transition>
+      </keep-alive>
     </router-view>
     <iframe-toggle />
     <copyright />
