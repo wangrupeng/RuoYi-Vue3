@@ -1,5 +1,5 @@
 ---------------- <template>
-  <div class="app-container cylinder-model">
+  <div class="app-container cylinder-model" :class="{ 'dark-theme': isDarkTheme }">
     <el-row :gutter="20">
       <el-col :span="16">
         <el-card class="box-card">
@@ -16,6 +16,7 @@
           <template #header>
             <div class="card-header">
               <span>参数设置</span>
+              <el-button size="small" @click="toggleTheme">{{ isDarkTheme ? '亮色' : '暗色' }}</el-button>
             </div>
           </template>
           <el-form :model="paramsForm" label-width="100px">
@@ -124,6 +125,15 @@ let solidMesh = null
 let labelsGroup = null
 let animationId = null
 
+const isDarkTheme = ref(false)
+
+function toggleTheme() {
+  isDarkTheme.value = !isDarkTheme.value
+  if (scene) {
+    scene.background = new THREE.Color(isDarkTheme.value ? 0x1a1a2e : 0xf5f5f5)
+  }
+}
+
 const paramsForm = ref({
   height: 5,
   topDiameter: 4,
@@ -143,7 +153,7 @@ const paramsForm = ref({
 function initThreeJS() {
   // 创建场景
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xf5f5f5)
+  scene.background = new THREE.Color(isDarkTheme.value ? 0x1a1a2e : 0xf5f5f5)
 
   // 创建相机
   const width = canvasContainer.value.clientWidth
@@ -801,6 +811,38 @@ onBeforeUnmount(() => {
 
   .el-form-item {
     margin-bottom: 22px;
+  }
+
+  /* 深色主题 */
+  &.dark-theme {
+    background: #0d1117;
+
+    :deep(.el-card) {
+      background: #161b22;
+      border-color: #30363d;
+    }
+
+    .card-header {
+      color: #58a6ff;
+    }
+
+    :deep(.el-form-item__label) {
+      color: #c9d1d9;
+    }
+
+    :deep(.el-divider__text) {
+      background: #161b22;
+      color: #8b949e;
+    }
+
+    :deep(.el-input__wrapper) {
+      background: #0d1117;
+      box-shadow: 0 0 0 1px #30363d inset;
+    }
+
+    :deep(.el-input__inner) {
+      color: #c9d1d9;
+    }
   }
 }
 </style>
